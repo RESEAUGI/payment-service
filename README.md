@@ -75,13 +75,18 @@ Une fois le paiement effectué par le client, Stripe enverra un callback à l'en
 
 
 ## integration au projet
-1. Le microservice souhaitant utiliser les service de paiement doit envoyer les données aux format mentioné plut haut sur le endpoint `localhost:8081/payin`
+1. Le microservice souhaitant utiliser les service de paiement doit envoyer les données au format mentioné plut haut sur le endpoint `localhost:8081/payin`
 2. Une fois le paiement effectué par le client, Stripe enverra un callback à l'endpoint localhost:8081/handle-payin de ce  microservice de gestion des paiements 
 3. Il déposera une chaîne de caractères au format suivant sur le topic "souscription" ou "reservation", en fonction de la nature du produit payé:
+
    "product_id amount timestamp encryptHash(productId+amount+currency)"
-La classe ConsumerController située dans le répertoire Controller peut vous servir d'exemple pour créer un consommateur dans votre microservice.
 
-Assurez-vous d'avoir configuré Apache Pulsar et d'avoir créé un abonnement à l'un des topics "reservation" ou "souscription" pour recevoir les messages de la part de ce microservice de gestion des paiements dans votre microservice.
-
-En résumé, vous pouvez utiliser ce microservices pour recevoir des paiements par carte, vous pouvez aussi le modifier en et l'adapter à vos besoins 
+4. Cette fonction encryptHash(productId+amount+currency) permet de verifier l'integrité des données à la reception.
+   Vous pouvez trouver son implementation dans la classe CommunMethodsController.
+   La méthode decrypt(String message) de la classe ConsumerController vous donne une idée de comment dechiffrer le hash  
+   
+   La classe ConsumerController située dans le répertoire Controller peut vous servir d'exemple pour créer un consommateur dans votre microservice.
+   Assurez-vous d'avoir configuré Apache Pulsar et d'avoir créé un abonnement à l'un des topics "reservation" ou "souscription" pour recevoir les messages de la 
+   part de ce microservice de gestion des paiements dans votre microservice.
+   En résumé, vous pouvez utiliser ce microservices pour recevoir des paiements par carte, vous pouvez aussi le modifier en et l'adapter à vos besoins 
        
