@@ -8,7 +8,9 @@ Avant de commencer, assurez-vous de remplir les conditions suivantes :
 
 - Créez un compte Stripe sur [stripe.com](https://stripe.com).
 - Installez la CLI Stripe en suivant les instructions de [stripe.com/docs/cli](https://stripe.com/docs/cli).
-
+- Céez un keyspace(base de données ScyllaDB) nomé "payment" et créez y une table nomée "paiement_reservation" sur votre machine.Vos informations de connexion 
+  doivent etre  : "127.0.0.1", 9042, "datacenter1"
+  
 ## Configuration
 
 1. Ouvrez les fichiers CommunMethodsController et du répertoire controller et StripeOperator du repertoire entities.
@@ -22,7 +24,7 @@ Avant de commencer, assurez-vous de remplir les conditions suivantes :
 git clone https://github.com/RESEAUGI/payment-service.git
 
 
-2. Accédez au répertoire du projet, ouvrez, rendez vous sur le fichier porm.xml installez les depandances: clic droit->maven->update project
+2. Accédez au répertoire du projet, rendez vous sur le fichier porm.xml et installez les depandances: clic droit->maven->update project
 
 ## Authentification Stripe CLI
 
@@ -30,7 +32,7 @@ git clone https://github.com/RESEAUGI/payment-service.git
    
 3.  Lancez la commande suivante pour vous connecter à votre compte Stripe :
    
-stripe login
+$ stripe login
 
 Cela ouvrira une fenêtre de navigateur où vous pourrez vous connecter à votre compte Stripe.
 
@@ -40,7 +42,7 @@ Cela ouvrira une fenêtre de navigateur où vous pourrez vous connecter à votre
 
 1. Pour recevoir les événements Stripe en mode test, utilisez la commande suivante en vous assurant de remplacer `localhost:8081/handle-payin` par votre propre point de terminaison webhook local :
 
-stripe listen --forward-to localhost:8081/handle-payin
+$ stripe listen --forward-to localhost:8081/handle-payin
 
 Utilisez l'option `--skip-verify` pour désactiver la vérification du certificat HTTPS si nécessaire.
 
