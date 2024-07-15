@@ -1,0 +1,31 @@
+type Query {
+    ping: String @deprecated(reason: "https://stackoverflow.com/questions/59868942/graphql-a-schema-must-have-a-query-operation-defined")
+     getPayments: [Payment!]!
+}
+
+type Mutation {
+  createPaymentLink(product: ProductRequest): LinkPay
+  testStripeEndpoint(payload: String ): String
+}
+
+input ProductRequest {
+  id: String
+  currency: String
+  amount: Float
+  description: String
+  motif: String
+}
+
+type LinkPay {
+   url: String!
+}
+
+type Payment {
+  paymentId: ID!
+  reservationId: ID!
+  amount: Float!
+  link: String!
+  currency: String!
+  timestamp: String!
+  status: String!
+}
