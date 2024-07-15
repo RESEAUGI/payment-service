@@ -1,4 +1,4 @@
-# payment-service
+# payment_service
 microservice gestion des paiements
 Ce référentiel contient un microservice de gestion des paiements.
 
