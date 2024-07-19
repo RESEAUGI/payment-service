@@ -102,7 +102,11 @@ public class PaymentsController {
 	 public ResponseEntity<String> handleEvent(@RequestBody String payload, HttpServletRequest request) throws PulsarClientException, InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 		return stipeOperator.handle_payment(payload) ; 
 	 }
-	
+	@CrossOrigin
+	@PostMapping("/handle-pay")
+	public ResponseEntity<String> handleEventCoolpay(@RequestBody String payload, HttpServletRequest request) throws PulsarClientException, InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+		return myCoolPayOperator.handle_payment(payload) ; 
+	 }
 	
 	
 	 @CrossOrigin
@@ -112,6 +116,8 @@ public class PaymentsController {
 		 String url = paymentProvider.suscribe(product);
 		 return url;
 	 }
+	 
+	 
 	
 			
 
