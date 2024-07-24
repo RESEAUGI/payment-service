@@ -285,8 +285,10 @@ public class StripeOperator implements CallbackInterface, ValidateDataInterface,
 		                	Long amount = resource.getAmountTotal();
 		                    String service_name = resource.getMetadata().get("service_name");
 		                    System.out.println(service_name);
+		           
 		                    ResponseEntity<?> response = communMethodsController.getPaiementReservationBySessionId(resource.getId());
 		                    if (response.getBody() != null) {
+		                    	communMethodsController.updatePaymentStatus(session_id, "success", "paiement_reservation"); 
 	                            String productId = response.getBody().toString();
 	                            UUID product_id = UUID.fromString(productId);
 	                            Instant instant = Instant.now();

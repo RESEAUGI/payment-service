@@ -39,8 +39,8 @@ public class DataConfig {
 	
 	
 	@Bean
-    public MyCoolPayOperator myCoolPayOperator() {
-        return new MyCoolPayOperator();
+    public MyCoolPayOperator myCoolPayOperator(CommunMethodsController communMethodsController, PulsarClient client) {
+        return new MyCoolPayOperator(communMethodsController, client);
     }
 	
 	@Bean

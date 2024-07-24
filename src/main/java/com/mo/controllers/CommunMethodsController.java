@@ -6,6 +6,7 @@ import java.net.InetSocketAddress;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.UUID;
+import java.util.ArrayList;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -23,6 +24,7 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
+import java.util.List;
 
 import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClient;
@@ -44,12 +46,16 @@ import com.datastax.oss.driver.api.core.cql.PreparedStatement;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
+import com.datastax.oss.driver.api.core.metadata.schema.ClusteringOrder;
 import com.datastax.oss.driver.api.core.type.codec.TypeCodecs;
 import com.datastax.oss.driver.api.querybuilder.QueryBuilder;
 import com.datastax.oss.driver.api.querybuilder.insert.RegularInsert;
+import com.datastax.oss.driver.api.querybuilder.select.Select;
+import com.datastax.oss.driver.api.querybuilder.update.Update;
 import com.google.gson.Gson;
 import com.mo.entities.DataOut;
 import com.mo.entities.MyProduct;
+import com.mo.entities.Payment;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionListLineItemsParams;
 
@@ -139,6 +145,24 @@ public class CommunMethodsController {
     }
 	
 
+	
+	public boolean updatePaymentStatus(String session_id, String newStatus, String tableName) {
+	    String keyspaceName = "payment";
+
+	    Update update = QueryBuilder.update(keyspaceName, tableName)
+	            .setColumn("status", QueryBuilder.literal(newStatus))
+	            .whereColumn("id").isEqualTo(QueryBuilder.literal(session_id));
+
+	    SimpleStatement updateStatement = update.build();
+
+	    try {
+	        session.execute(updateStatement);
+	        return true; // Mise à jour réussie
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return false; // Échec de la mise à jour
+	    }
+	}
 
 	public void sendMessageToPulsarTopic(String str, String topic) {
 		stringTemplate.send(topic, str);
@@ -188,6 +212,35 @@ public class CommunMethodsController {
         // Affichage de la clé publique encodée
         return publicKeyString;
     }
-   
+    
+    
+    public List<Payment> getPaymentHistory() {
+        String keyspaceName = "payment";
+        String tableName = "paiement_reservation";
+
+        Select select = QueryBuilder.selectFrom(keyspaceName, tableName)
+                .all();
+//                .orderBy("timestamp", ClusteringOrder.DESC); // Tri inversé sur la colonne "timestamp"
+
+        SimpleStatement selectStatement = select.build();
+
+        ResultSet resultSet = session.execute(selectStatement);
+
+        List<Payment> paymentHistory = new ArrayList<>();
+
+        for (Row row : resultSet) {
+            UUID paymentId = row.getUuid("id");
+            UUID product_id = row.getUuid("product_id");
+            BigDecimal amount = row.getBigDecimal("amount");
+            String currency = row.getString("currency");
+            String sessionPayId = row.getString("sessionid");
+            String status = row.getString("status");
+            Instant timestamp = row.getInstant("timestamp");
+            Payment payment = new Payment(paymentId, product_id, amount, currency, timestamp, status);
+            paymentHistory.add(payment);
+        }
+
+        return paymentHistory;
+    }
 
 }
