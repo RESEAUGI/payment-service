@@ -1,4 +1,4 @@
-# payment-service
+# payment_service
 microservice gestion des paiements
 Ce référentiel contient un microservice de gestion des paiements.
 
@@ -21,7 +21,7 @@ Avant de commencer, assurez-vous de remplir les conditions suivantes :
 
 1. Clonez ce référentiel sur votre machine locale :
 
-git clone https://github.com/RESEAUGI/payment-service.git
+git clone https://github.com/RESEAUGI/payment_service.git
 
 
 2. Accédez au répertoire du projet, rendez vous sur le fichier porm.xml et installez les depandances: clic droit->maven->update project
