@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public class MyProduct {
 	
-	 private UUID product_id; 
+	 private String product_id; 
 	 private Long amount;
 	 private String transaction_reason ;
 	 private String phone_number ;
@@ -18,7 +18,7 @@ public class MyProduct {
 	 
 	 
 	 
-	public MyProduct(UUID product_id, Long amount, String transaction_reason, String phone_number, String customer_name,
+	public MyProduct(String product_id, Long amount, String transaction_reason, String phone_number, String customer_name,
 			String customer_email, String langague, String description, String currency, PaymentType  payment_type) {
 		super();
 		this.product_id = product_id;
@@ -35,13 +35,13 @@ public class MyProduct {
 
 
 
-	public UUID getProduct_id() {
+	public String getProduct_id() {
 		return product_id;
 	}
 
 
 
-	public void setProduct_id(UUID product_id) {
+	public void setProduct_id(String product_id) {
 		this.product_id = product_id;
 	}
 

@@ -170,72 +170,50 @@ public class StripeOperator implements CallbackInterface, ValidateDataInterface,
 	@Override
 	
 	public LinkPay payIn(MyProduct product) {
-		Stripe.apiKey = apiKey;
-    	String YOUR_DOMAIN = "http://localhost:3000";
-    	String tableName = "paiement_reservation";
-    	SessionCreateParams params = SessionCreateParams.builder()
-                .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl(YOUR_DOMAIN + "/success")
-                .setCancelUrl(YOUR_DOMAIN + "/cancel")
-                .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
-                .addLineItem(
-                        SessionCreateParams.LineItem.builder()
-                                .setQuantity(1L)
-                                .setPriceData(
-                                        SessionCreateParams.LineItem.PriceData.builder()
-                                                .setCurrency(product.getCurrency())
-                                                .setUnitAmount(product.getAmount())
-                                                .setProductData(
-                                                        SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                                                .setName(product.getTransaction_reason())
-                                                                .setDescription(product.getDescription())
-                                                                .build())
-                                                .build())
-                                .build())
-                .putMetadata("service_name", product.getTransaction_reason().toString()) // Ajouter l'identifiant personnel aux métadonnées
-                .build();
-		        try {
-		            Session session = Session.create(params);
-		            String url = session.getUrl();
-		            String sessionId = session.getId(); 
-		
-		            LinkPay linkPay = new LinkPay(url);
-		            System.out.println(session.getUrl());
-		            System.out.println("l'identifiant de la session est:  " + session.getId());
-		            this.sessionPayId = session.getId();
-		        		           
-		            System.out.print(insertData(UUID.randomUUID(),new BigDecimal(product.getAmount()),product.getCurrency(), product.getProduct_id(), session.getId(), "pending", Instant.now(), tableName));
-		            return linkPay;
-		        } catch (StripeException e) {
-		            e.printStackTrace();
-		            return null;
-		        }
-    
+	    Stripe.apiKey = apiKey;
+	    String YOUR_DOMAIN = "http://localhost:3000";
+	    String tableName = "paiement";
+	    SessionCreateParams params = SessionCreateParams.builder()
+	            .setMode(SessionCreateParams.Mode.PAYMENT)
+	            .setSuccessUrl(YOUR_DOMAIN + "/success")
+	            .setCancelUrl(YOUR_DOMAIN + "/cancel")
+	            .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
+	            .addLineItem(
+	                    SessionCreateParams.LineItem.builder()
+	                            .setQuantity(1L)
+	                            .setPriceData(
+	                                    SessionCreateParams.LineItem.PriceData.builder()
+	                                            .setCurrency(product.getCurrency())
+	                                            .setUnitAmount(product.getAmount())
+	                                            .setProductData(
+	                                                    SessionCreateParams.LineItem.PriceData.ProductData.builder()
+	                                                            .setName(product.getTransaction_reason())
+	                                                            .setDescription(product.getDescription())
+	                                                            .build())
+	                                            .build())
+	                            .build())
+	            .putMetadata("service_name", product.getTransaction_reason().toString()) // Ajouter l'identifiant personnel aux métadonnées
+	            .putMetadata("product_id", product.getProduct_id()) // Ajouter le product_id aux métadonnées
+	            .build();
+	    try {
+	        Session session = Session.create(params);
+	        String url = session.getUrl();
+	        String sessionId = session.getId(); 
 
+	        LinkPay linkPay = new LinkPay(url);
+	        System.out.println(session.getUrl());
+	        System.out.println("l'identifiant de la session est:  " + session.getId());
+	        this.sessionPayId = session.getId();
+	                   
+	        System.out.print(communMethodsController.insertData(UUID.randomUUID(),new BigDecimal(product.getAmount()),product.getCurrency(),"c1","p1", product.getProduct_id(), "pending", Instant.now(), tableName));
+	        return linkPay;
+	    } catch (StripeException e) {
+	        e.printStackTrace();
+	        return null;
+	    }
 	}
+
 	
-	public boolean insertData(UUID paymentId, BigDecimal amount, String currency, UUID product_id, String sessionPayId, String status, Instant timestamp,  String tableName) {
-        String keyspaceName = "payment";
-
-        RegularInsert regularInsert = QueryBuilder.insertInto(keyspaceName, tableName)
-                .value("id", QueryBuilder.literal(paymentId))
-                .value("amount", QueryBuilder.literal(amount, TypeCodecs.DECIMAL))
-                .value("currency", QueryBuilder.literal(currency))
-                .value("product_id", QueryBuilder.literal(product_id))
-                .value("sessionid", QueryBuilder.literal(sessionPayId))
-                .value("status", QueryBuilder.literal(status))
-                .value("timestamp", QueryBuilder.literal(timestamp));
-
-        SimpleStatement insertStatement = regularInsert.build();
-
-        try {
-            session.execute(insertStatement);
-            return true; // Insertion réussie
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false; // Échec de l'insertion
-        }
-    }
 
 	@Override
 	public int operator() {
@@ -277,34 +255,36 @@ public class StripeOperator implements CallbackInterface, ValidateDataInterface,
 	            case "checkout.session.completed":
 					try {
 						resource = Session.retrieve(this.sessionPayId);
+						String product_id  = resource.getMetadata().get("product_id");
 						System.out.println("voici l'identifiant de la session"+resource.getId() );
-						communMethodsController.getPaiementReservationBySessionId(resource.getId());
+						communMethodsController.getPaiementByPoductId(product_id);
 						SessionListLineItemsParams params = SessionListLineItemsParams.builder().build();
 						if(resource != null) {
 		                	String session_id = resource.getId();
 		                	Long amount = resource.getAmountTotal();
 		                    String service_name = resource.getMetadata().get("service_name");
+		                    
 		                    System.out.println(service_name);
 		           
-		                    ResponseEntity<?> response = communMethodsController.getPaiementReservationBySessionId(resource.getId());
+		                    ResponseEntity<?> response = communMethodsController.getPaiementByPoductId(product_id);
+		              
 		                    if (response.getBody() != null) {
-		                    	communMethodsController.updatePaymentStatus(session_id, "success", "paiement_reservation"); 
-	                            String productId = response.getBody().toString();
-	                            UUID product_id = UUID.fromString(productId);
+		                    	communMethodsController.updatePaymentStatus(product_id, "success", "paiement"); 
+	                        
 	                            Instant instant = Instant.now();
 	                            Timestamp timestamp = Timestamp.from(instant);
 	                            String currency = resource.getCurrency();
-	                            String encryptedHash = communMethodsController.encrypt(productId+amount+currency);
+	                            String encryptedHash = communMethodsController.encrypt(product_id+amount+currency);
 		                        if (service_name.equals("reservation")) {
 		                        	
-		                            communMethodsController.sendMessageToPulsarTopic(productId+ " " +amount+ " "+timestamp+" "+encryptedHash, service_name) ;//envoie de l'id via aphache pulsar
-		                            System.out.println("L'identifiant du produit est : " + productId);
+		                            communMethodsController.sendMessageToPulsarTopic(product_id+ " " +amount+ " "+timestamp+" "+encryptedHash, service_name) ;//envoie de l'id via aphache pulsar
+		                            System.out.println("L'identifiant du produit est : " + product_id);
 		                        }
 		                        
 		                    	if (service_name.equals("souscription")) {
 		          
-		                            communMethodsController.sendMessageToPulsarTopic(productId+ " " +amount+ " "+timestamp+" "+encryptedHash, service_name);//envoie de l'id via aphache pulsar
-		                            System.out.println("L'identifiant du produit est : " + productId);	                        
+		                            communMethodsController.sendMessageToPulsarTopic(product_id+ " " +amount+ " "+timestamp+" "+encryptedHash, service_name);//envoie de l'id via aphache pulsar
+		                            System.out.println("L'identifiant du produit est : " + product_id);	                        
 		                        }
 		                    
 		                    }

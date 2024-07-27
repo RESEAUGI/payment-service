@@ -6,19 +6,23 @@ import java.util.UUID;
 
 public class Payment {
     private UUID id;
-    private UUID product_id;
+    private String product_id;
     private BigDecimal amount;
     private String currency;
+    private String customer_id;
+    private String producer_id;
     private Instant timestamp;
     private String status;
     
     
-	public Payment(UUID id, UUID product_id, BigDecimal amount, String currency, Instant timestamp, String status) {
+	public Payment(UUID id, String product_id, BigDecimal amount, String currency, String customer_id, String producer_id, Instant timestamp, String status) {
 		super();
 		this.id = id;
 		this.product_id = product_id;
 		this.amount = amount;
 		this.currency = currency;
+		this.customer_id = customer_id;
+		this.producer_id = producer_id;
 		this.timestamp = timestamp;
 		this.status = status;
 	}
@@ -34,12 +38,12 @@ public class Payment {
 	}
 
 
-	public UUID getProduct_id() {
+	public String getProduct_id() {
 		return product_id;
 	}
 
 
-	public void setProduct_id(UUID product_id) {
+	public void setProduct_id(String product_id) {
 		this.product_id = product_id;
 	}
 
@@ -56,6 +60,27 @@ public class Payment {
 
 	public String getCurrency() {
 		return currency;
+	}
+
+    
+	
+	public String getCustomer_id() {
+		return customer_id;
+	}
+
+
+	public void setCustomer_id(String customer_id) {
+		this.customer_id = customer_id;
+	}
+
+
+	public String getProducer_id() {
+		return producer_id;
+	}
+
+
+	public void setProducer_id(String producer_id) {
+		this.producer_id = producer_id;
 	}
 
 

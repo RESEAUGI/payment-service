@@ -205,13 +205,12 @@ public class MyCoolPayOperator implements CallbackInterface, PaymentInterface, V
         String productId = transaction.getApp_transaction_ref();
         int amount = transaction.getTransaction_amount();
         String currency = transaction.getTransaction_currency();
-        UUID product_id = UUID.fromString(productId);
         String sessionId = null;
         String status = "success";
         String service_name = transaction.getTransaction_reason();
-        String tableName = "paiement_reservation";
+        String tableName = "paiement";
         
-        System.out.println(insertData(UUID.randomUUID(),new BigDecimal(amount),currency, product_id, "", "success", Instant.now(), tableName));
+        System.out.println(communMethodsController.insertData(UUID.randomUUID(),new BigDecimal(amount),currency, "c1","p1", productId, "success", Instant.now(), tableName));
         String encryptedHash = communMethodsController.encrypt(productId+amount+currency);
         communMethodsController.sendMessageToPulsarTopic(productId+ " " +amount+ " "+Instant.now()+" "+encryptedHash, service_name) ;//envoie de l'id via aphache pulsar
         System.out.println("L'identifiant du produit est : " + productId);
@@ -221,31 +220,6 @@ public class MyCoolPayOperator implements CallbackInterface, PaymentInterface, V
 	}
 	
 	
-	public boolean insertData(UUID paymentId, BigDecimal amount, String currency, UUID product_id, String sessionPayId, String status, Instant timestamp,  String tableName) {
-        String keyspaceName = "payment";
 
-        RegularInsert regularInsert = QueryBuilder.insertInto(keyspaceName, tableName)
-                .value("id", QueryBuilder.literal(paymentId))
-                .value("amount", QueryBuilder.literal(amount, TypeCodecs.DECIMAL))
-                .value("currency", QueryBuilder.literal(currency))
-                .value("product_id", QueryBuilder.literal(product_id))
-                .value("sessionid", QueryBuilder.literal(sessionPayId))
-                .value("status", QueryBuilder.literal(status))
-                .value("timestamp", QueryBuilder.literal(timestamp));
-
-        SimpleStatement insertStatement = regularInsert.build();
-
-        try {
-            session.execute(insertStatement);
-            return true; // Insertion réussie
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false; // Échec de l'insertion
-        }
-    }
-	
-	
-	
-	
 
 }

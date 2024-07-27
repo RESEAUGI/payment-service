@@ -12,7 +12,7 @@ import com.stripe.model.checkout.Session;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.google.gson.Gson;
 import com.mo.controllers.CommunMethodsController;
-import com.mo.entities.DataOut;
+
 import com.mo.entities.MyCoolPayOperator;
 
 import org.apache.pulsar.client.api.PulsarClient;
@@ -27,7 +27,7 @@ public class DataConfig {
 	public SchemaResolverCustomizer<DefaultSchemaResolver> schemaResolverCustomizer() {
 	    return (schemaResolver) -> {
 	        schemaResolver.addCustomSchemaMapping(MyProduct.class, Schema.JSON(MyProduct.class));
-	        schemaResolver.addCustomSchemaMapping(DataOut.class, Schema.JSON(DataOut.class));
+	        
 	    };
     }
 	

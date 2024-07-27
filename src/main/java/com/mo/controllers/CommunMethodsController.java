@@ -53,7 +53,7 @@ import com.datastax.oss.driver.api.querybuilder.insert.RegularInsert;
 import com.datastax.oss.driver.api.querybuilder.select.Select;
 import com.datastax.oss.driver.api.querybuilder.update.Update;
 import com.google.gson.Gson;
-import com.mo.entities.DataOut;
+
 import com.mo.entities.MyProduct;
 import com.mo.entities.Payment;
 import com.stripe.model.checkout.Session;
@@ -97,13 +97,13 @@ public class CommunMethodsController {
     private String apiKey = "sk_test_51PVJciERlR7Uy2xt1I68IsVZWLzrQJkYxJwVhf8ie3cjFZ3Q7Pi9E68luHyBY7zA4BwmCpZgoomnJ5TngoybPUC400GIRU8bD0";
     
 	
-	public ResponseEntity<?> getPaiementReservationBySessionId(String sessionId) {
+	public ResponseEntity<?> getPaiementByPoductId(String productId) {
         // Création de la requête CQL
-        String query = "SELECT * FROM payment.paiement_reservation WHERE sessionid = ? LIMIT 1";
+        String query = "SELECT * FROM payment.paiement WHERE product_id = ? LIMIT 1";
 
         // Préparation de la requête
         PreparedStatement preparedStatement = getSession().prepare(query);
-        BoundStatement boundStatement = preparedStatement.bind(sessionId);
+        BoundStatement boundStatement = preparedStatement.bind(productId);
 
         // Exécution de la requête
         ResultSet resultSet = getSession().execute(boundStatement.setConsistencyLevel(DefaultConsistencyLevel.ONE));
@@ -111,17 +111,16 @@ public class CommunMethodsController {
         // Traitement du résultat
         Row row = resultSet.one();
         if (row != null) {
-            UUID id = row.getUuid("product_id");
             Long amount = row.getBigDecimal("amount").longValue();
-            
-            return ResponseEntity.ok(id);
+        
+            return ResponseEntity.ok(productId);
         }
         return null;
     }
 	
 	
 	
-	public boolean insertData(UUID paymentId, BigDecimal amount, String currency, UUID product_id, String sessionPayId, String status, Instant timestamp,  String tableName) {
+	public boolean insertData(UUID paymentId, BigDecimal amount, String currency, String customer_id, String producer_id, String product_id, String status, Instant timestamp,  String tableName) {
         String keyspaceName = "payment";
 
         RegularInsert regularInsert = QueryBuilder.insertInto(keyspaceName, tableName)
@@ -129,7 +128,8 @@ public class CommunMethodsController {
                 .value("amount", QueryBuilder.literal(amount, TypeCodecs.DECIMAL))
                 .value("currency", QueryBuilder.literal(currency))
                 .value("product_id", QueryBuilder.literal(product_id))
-                .value("sessionid", QueryBuilder.literal(sessionPayId))
+                .value("customer_id", QueryBuilder.literal(customer_id))
+                .value("producer_id", QueryBuilder.literal(producer_id))
                 .value("status", QueryBuilder.literal(status))
                 .value("timestamp", QueryBuilder.literal(timestamp));
 
@@ -144,26 +144,36 @@ public class CommunMethodsController {
         }
     }
 	
+	
+	
+	
 
 	
-	public boolean updatePaymentStatus(String session_id, String newStatus, String tableName) {
+	public boolean updatePaymentStatus(String product_id, String newStatus, String tableName) {
 	    String keyspaceName = "payment";
 
-	    Update update = QueryBuilder.update(keyspaceName, tableName)
-	            .setColumn("status", QueryBuilder.literal(newStatus))
-	            .whereColumn("id").isEqualTo(QueryBuilder.literal(session_id));
+	    ResultSet rs = session.execute("SELECT id FROM " + keyspaceName + "." + tableName + " WHERE product_id = '" + product_id + "'");
+	    Row row = rs.one();
+	    if (row != null) {
+	        UUID paymentId = row.getUuid("id");
 
-	    SimpleStatement updateStatement = update.build();
+	        Update update = QueryBuilder.update(keyspaceName, tableName)
+	                .setColumn("status", QueryBuilder.literal(newStatus))
+	                .whereColumn("id").isEqualTo(QueryBuilder.literal(paymentId));
 
-	    try {
-	        session.execute(updateStatement);
-	        return true; // Mise à jour réussie
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        return false; // Échec de la mise à jour
+	        SimpleStatement updateStatement = update.build();
+
+	        try {
+	            session.execute(updateStatement);
+	            return true; // Mise à jour réussie
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            return false; // Échec de la mise à jour
+	        }
 	    }
-	}
 
+	    return false; // Échec de la mise à jour
+	}
 	public void sendMessageToPulsarTopic(String str, String topic) {
 		stringTemplate.send(topic, str);
 		
@@ -216,7 +226,7 @@ public class CommunMethodsController {
     
     public List<Payment> getPaymentHistory() {
         String keyspaceName = "payment";
-        String tableName = "paiement_reservation";
+        String tableName = "paiement";
 
         Select select = QueryBuilder.selectFrom(keyspaceName, tableName)
                 .all();
@@ -230,13 +240,14 @@ public class CommunMethodsController {
 
         for (Row row : resultSet) {
             UUID paymentId = row.getUuid("id");
-            UUID product_id = row.getUuid("product_id");
+            String product_id = row.getString("product_id");
             BigDecimal amount = row.getBigDecimal("amount");
             String currency = row.getString("currency");
-            String sessionPayId = row.getString("sessionid");
+            String customer_id = row.getString("customer_id");
+            String producer_id = row.getString("producer_id");
             String status = row.getString("status");
             Instant timestamp = row.getInstant("timestamp");
-            Payment payment = new Payment(paymentId, product_id, amount, currency, timestamp, status);
+            Payment payment = new Payment(paymentId, product_id, amount, currency,customer_id, producer_id, timestamp, status);
             paymentHistory.add(payment);
         }
 
