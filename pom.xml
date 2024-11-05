@@ -32,10 +32,6 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-cassandra</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 		<dependency>
@@ -55,23 +51,10 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-		    <groupId>com.datastax.oss</groupId>
-		    <artifactId>java-driver-core</artifactId>
-		    <version>4.1.0</version>
-		</dependency>
-		<dependency>
 	    <groupId>com.scylladb</groupId>
 		    <artifactId>java-driver-core</artifactId>
 		    <version>4.14.1.0</version>
 		</dependency>
-		<dependency>
-	      <groupId>org.springframework.boot</groupId>
-	      <artifactId>spring-boot-starter-graphql</artifactId>
-	    </dependency>
-	    <dependency>
-	      <groupId>org.springframework.boot</groupId>
-	      <artifactId>spring-boot-starter-pulsar</artifactId>
-	    </dependency>
 		<dependency>
 		    <groupId>com.scylladb</groupId>
 		    <artifactId>java-driver-query-builder</artifactId>
@@ -79,13 +62,24 @@
 		</dependency>
 		<dependency>
 		    <groupId>com.datastax.oss</groupId>
+		    <artifactId>java-driver-core</artifactId>
+		    <version>4.1.0</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>com.datastax.oss</groupId>
 		    <artifactId>java-driver-query-builder</artifactId>
 		    <version>4.1.0</version>
 		</dependency>
 		<dependency>
+	      <groupId>org.springframework.boot</groupId>
+	      <artifactId>spring-boot-starter-data-cassandra-reactive</artifactId>
+	    </dependency>
+	    
+		<dependency>
 		  <groupId>com.stripe</groupId>
 		  <artifactId>stripe-java</artifactId>
-		  <version>26.0.0</version>
+		  <version>27.0.0</version>
 		</dependency>
 		<dependency>
 		    <groupId>com.google.code.gson</groupId>
